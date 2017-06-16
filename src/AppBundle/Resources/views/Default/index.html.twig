@@ -52,8 +52,17 @@
                     $('.alert').remove();
                     $('body .container .row').first().prepend('<div class="alert alert-info">Chargement en cours...</div>');
                 }
-            })
-            .done(function(data) {
+            }).done(function(data) {
+                var on = true;
+                for (var i = 0; i < data.length; i++) {
+                    if (data[i].state == 'off') {
+                        changeFavicon("{{ asset('images/red.png') }}");
+                        on = false;
+                    }
+                }
+                if (on) {
+                    changeFavicon("{{ asset('images/green.png') }}");
+                }
                 loadIframes();
                 $('.alert').remove();
             });
@@ -65,5 +74,13 @@
                 $(this).find('.panel-body').html('<iframe src="' + domain + '" style="height:100%;"></iframe>')
             });
         }
+
+        function changeFavicon(img) {
+            var link = document.querySelector("link[rel*='icon']") || document.createElement('link');
+            link.type = 'image/x-icon';
+            link.rel = 'shortcut icon';
+            link.href = img;
+            document.getElementsByTagName('head')[0].appendChild(link);
+        };
     </script>
 {% endblock %}
