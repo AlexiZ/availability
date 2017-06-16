@@ -76,13 +76,12 @@ class DefaultController extends Controller
     }
 
     protected function sendAlertMail($domain) {
-        $message = new \Swift_Message('Hello Email');
+        $message = \Swift_Message::newInstance($domain . ' offline');
         $message
             ->setFrom('availability@mail.com')
             ->setTo($this->getParameter('alert_email'))
             ->setBody(
                 $this->renderView(
-                // app/Resources/views/Emails/registration.html.twig
                     '@App/Email/alert.html.twig',
                     ['domain' => $domain]
                 ),
@@ -90,11 +89,6 @@ class DefaultController extends Controller
             )
         ;
 
-        $mailer = new \Swift_Mailer($this->get('swiftmailer.transport'));
-        try {
-            $mailer->send($message);
-        } catch (\Exception $e) {
-            dump($e);
-        }
+        $this->get('mailer')->send($message);
     }
 }
