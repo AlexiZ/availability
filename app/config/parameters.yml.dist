@@ -19,3 +19,4 @@ parameters:
     secret: ThisTokenIsNotSoSecretChangeIt
 
     app_domain: availability.docker
+    alert_email: me@test.com

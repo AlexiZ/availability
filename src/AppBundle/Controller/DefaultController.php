@@ -32,6 +32,7 @@ class DefaultController extends Controller
                     'domain' => $domain,
                     'state' => 'off'
                 ];
+                $this->sendAlertMail($domain);
             }
         }
         $parameters = array_merge($parameters, [
@@ -51,7 +52,7 @@ class DefaultController extends Controller
      * @param $domain
      * @return bool
      */
-    public function isDomainAvailible($domain)
+    protected function isDomainAvailible($domain)
     {
         //check, if a valid url is provided
         if (!filter_var($domain, FILTER_VALIDATE_URL)) {
@@ -72,5 +73,28 @@ class DefaultController extends Controller
         if ($response) return true;
 
         return false;
+    }
+
+    protected function sendAlertMail($domain) {
+        $message = new \Swift_Message('Hello Email');
+        $message
+            ->setFrom('availability@mail.com')
+            ->setTo($this->getParameter('alert_email'))
+            ->setBody(
+                $this->renderView(
+                // app/Resources/views/Emails/registration.html.twig
+                    '@App/Email/alert.html.twig',
+                    ['domain' => $domain]
+                ),
+                'text/html'
+            )
+        ;
+
+        $mailer = new \Swift_Mailer($this->get('swiftmailer.transport'));
+        try {
+            $mailer->send($message);
+        } catch (\Exception $e) {
+            dump($e);
+        }
     }
 }
