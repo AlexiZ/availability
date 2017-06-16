@@ -1,0 +1,48 @@
+{% extends 'base.html.twig' %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+{% endblock %}
+
+{% block title %}
+    Disponibilités
+{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <div class="row">
+            {% for key, state in states %}
+                <div class="col-md-4">
+                    {{ dump(key, state) }}
+                </div>
+            {% endfor %}
+        </div>
+        <div class="row text-center">
+            <button class="btn btn-primary" id="refresh">Refresh</button>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"
+            integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+            crossorigin="anonymous"></script>
+    <script type="text/javascript">
+        var jxhr;
+        $(document).on('click', '#refresh', function() {
+            if (jxhr && typeof jxhr.cancel == 'function') jxhr.cancel();
+            jxhr = $.ajax({
+                url: "/",
+                cache: false,
+                beforeSend: function(xhr) {
+                    $('.alert').remove();
+                    $('body').prepend('<div class="alert alert-info">Chargement en cours...</div>');
+                }
+            })
+            .done(function(data) {
+                console.log(data);
+                $('.alert').remove();
+            });
+        });
+    </script>
+{% endblock %}

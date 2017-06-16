@@ -1,0 +1,44 @@
+version:  '2'
+
+networks:
+    proxy:
+        external:
+            name: dev_proxy
+    db:
+        external:
+            name: dev_database
+    maildev:
+        external:
+            name: dev_maildev
+    memcached:
+        external:
+            name: dev_memcached
+
+services:
+    php:
+        image: lephare/php:7.0
+        networks:
+            - default
+            - db
+            - memcached
+            - maildev
+        volumes:
+            - .:/var/www/symfony
+            - $HOME/.composer:/var/tmp/composer
+        environment:
+            SF_APP_HOST: $COMPOSE_PROJECT_NAME.$DOCKER_HOST_SUFFIX
+            SF_DATABASE_NAME: $COMPOSE_PROJECT_NAME
+
+    web:
+        image: lephare/apache:2.4
+        networks:
+            - default
+            - proxy
+        volumes_from:
+            - php
+        volumes:
+            - ./var/logs/apache:/var/log/apache2
+        environment:
+            VIRTUAL_HOST: $COMPOSE_PROJECT_NAME.$DOCKER_HOST_SUFFIX,$COMPOSE_PROJECT_NAME.docker
+            CERT_NAME: generic
+            HTTPS_METHOD: noredirect
