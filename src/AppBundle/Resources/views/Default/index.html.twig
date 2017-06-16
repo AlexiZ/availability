@@ -10,12 +10,45 @@
 
 {% block body %}
     <div class="container">
-        <h2>Websites availability</h2>
+        <h1>Websites availability</h1>
+
+        <div class="row">
+            <h3>Add a website</h3>
+            {% if app.session.flashBag.has('success') %}
+                <div class="alert alert-success">
+                    {% for msg in app.session.flashBag.get('success') %}
+                        <p>{{ msg }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {{ form_start(formWebsite, {'attr': {'class': 'form-inline'}}) }}
+                {{ form_errors(formWebsite) }}
+                <div class="col-md-5">
+                    {{ form_label(formWebsite.domain) }}
+                    <div class="col-md-9">
+                        {{ form_widget(formWebsite.domain) }}
+                    </div>
+                </div>
+                <div class="col-md-5">
+                    {{ form_label(formWebsite.reference) }}
+                    <div class="col-md-9">
+                        {{ form_widget(formWebsite.reference) }}
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary">Save new domain</button>
+                </div>
+                {{ form_rest(formWebsite) }}
+            {{ form_end(formWebsite) }}
+        </div>
+
+        <hr>
 
         <div class="row">
             {% for key, state in states %}
                 <div class="col-md-4">
-                    <div class="panel panel-{% if state.state == 'on' %}success{% else %}danger{% endif %} iframes" id="{{ key }}">
+                    <div class="panel panel-{% if state.state == true %}success{% else %}danger{% endif %} iframes" id="{{ key }}">
                         <div class="panel-heading">{{ state.domain }}</div>
                         <div class="panel-body" style="height:400px;">
                         </div>
@@ -24,9 +57,11 @@
             {% endfor %}
         </div>
 
-        <div class="row text-center">
-            <button class="btn btn-primary" id="refresh">Refresh</button>
-        </div>
+        {% if states|default %}
+            <div class="row text-center">
+                <button class="btn btn-primary" id="refresh">Refresh</button>
+            </div>
+        {% endif %}
     </div>
 {% endblock %}
 
@@ -55,7 +90,7 @@
             }).done(function(data) {
                 var on = true;
                 for (var i = 0; i < data.length; i++) {
-                    if (data[i].state == 'off') {
+                    if (data[i].state == false) {
                         changeFavicon("{{ asset('images/red.png') }}");
                         on = false;
                     }

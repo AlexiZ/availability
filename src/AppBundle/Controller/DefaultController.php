@@ -2,38 +2,48 @@
 
 namespace AppBundle\Controller;
 
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use AppBundle\Entity\Website;
+use AppBundle\Form\WebsiteType;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
 class DefaultController extends Controller
 {
-    const DOMAINS = [
-        'FRF' => 'http://www.france-fermetures.fr',
-        'AUT' => 'https://www.autos.fr',
-        'BSO' => 'http://bernard-solfin.fr'
-    ];
-
     public function indexAction(Request $request)
     {
         $parameters = [];
+        $em = $this->get('doctrine.orm.entity_manager');
 
+        $website = new Website();
+        $formWebsite = $this->createForm(WebsiteType::class, $website);
+        $formWebsite->handleRequest($request);
+        if ($formWebsite->isSubmitted() && $formWebsite->isValid()) {
+            $website->setState(false);
+
+            $em->persist($website);
+            $em->flush();
+
+            $request->getSession()
+                ->getFlashBag()
+                ->add('success', 'Website successuflly added')
+            ;
+        }
+        $parameters = array_merge($parameters, [
+            'formWebsite' => $formWebsite->createView()
+        ]);
+
+        $websites = $em->getRepository(Website::class)->findAll();
         $states  = [];
-        foreach (self::DOMAINS as $key => $domain) {
-            if ($this->isDomainAvailible($domain)) {
-                $states[$key] = [
-                    'domain' => $domain,
-                    'state' => 'on'
-                ];
+        foreach ($websites as $website) {
+            if ($this->isDomainAvailible($website->getDomain())) {
+                $website->setState(true);
             }
             else {
-                $states[$key] = [
-                    'domain' => $domain,
-                    'state' => 'off'
-                ];
-                $this->sendAlertMail($domain);
+                $website->setState(false);
+                $this->sendAlertMail($website->getDomain());
             }
+            $states[$website->getReference()] = $website;
         }
         $parameters = array_merge($parameters, [
             'states' => $states
