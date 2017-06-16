@@ -10,13 +10,20 @@
 
 {% block body %}
     <div class="container">
+        <h2>Websites availability</h2>
+
         <div class="row">
             {% for key, state in states %}
                 <div class="col-md-4">
-                    {{ dump(key, state) }}
+                    <div class="panel panel-{% if state.state == 'on' %}success{% else %}danger{% endif %} iframes" id="{{ key }}">
+                        <div class="panel-heading">{{ state.domain }}</div>
+                        <div class="panel-body" style="height:400px;">
+                        </div>
+                    </div>
                 </div>
             {% endfor %}
         </div>
+
         <div class="row text-center">
             <button class="btn btn-primary" id="refresh">Refresh</button>
         </div>
@@ -29,20 +36,34 @@
             crossorigin="anonymous"></script>
     <script type="text/javascript">
         var jxhr;
-        $(document).on('click', '#refresh', function() {
+        $(document).ready(function() {
+            loadIframes();
+            setInterval(function() {
+                $('body .container .row').first().prepend('<div class="alert alert-info">Chargement en cours...</div>');
+                loadIframes();
+                $('.alert').remove();
+            }, 360000);
+        }).on('click', '#refresh', function() {
             if (jxhr && typeof jxhr.cancel == 'function') jxhr.cancel();
             jxhr = $.ajax({
                 url: "/",
                 cache: false,
                 beforeSend: function(xhr) {
                     $('.alert').remove();
-                    $('body').prepend('<div class="alert alert-info">Chargement en cours...</div>');
+                    $('body .container .row').first().prepend('<div class="alert alert-info">Chargement en cours...</div>');
                 }
             })
             .done(function(data) {
-                console.log(data);
+                loadIframes();
                 $('.alert').remove();
             });
         });
+
+        function loadIframes() {
+            $('.iframes').each(function(index) {
+                var domain = $(this).find('.panel-heading').html();
+                $(this).find('.panel-body').html('<iframe src="' + domain + '" style="height:100%;"></iframe>')
+            });
+        }
     </script>
 {% endblock %}
