@@ -46,7 +46,7 @@ class DefaultController extends Controller
             $states[$website->getReference()] = $website;
         }
         $parameters = array_merge($parameters, [
-            'states' => $states
+            'domains' => $states
         ]);
 
         if ($request->isXmlHttpRequest()) {
@@ -54,6 +54,22 @@ class DefaultController extends Controller
         }
 
         return $this->render('@App/Default/index.html.twig', $parameters);
+    }
+
+    public function websiteDeleteAction($reference)
+    {
+        $em = $this->get('doctrine.orm.entity_manager');
+        $website = $em->getRepository(Website::class)->findOneByReference($reference);
+
+        if ($website) {
+            $em->remove($website);
+            $em->flush();
+        }
+        else {
+            return new JsonResponse('ko', 200);
+        }
+
+        return new JsonResponse('ok', 200);
     }
 
     /**

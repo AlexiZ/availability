@@ -46,10 +46,15 @@
         <hr>
 
         <div class="row">
-            {% for key, state in states %}
+            {% for key, domain in domains %}
                 <div class="col-md-4">
-                    <div class="panel panel-{% if state.state == true %}success{% else %}danger{% endif %} iframes" id="{{ key }}">
-                        <div class="panel-heading">{{ state.domain }}</div>
+                    <div class="panel panel-{% if domain.state == true %}success{% else %}danger{% endif %} iframes" id="{{ key }}">
+                        <div class="panel-heading">
+                            <h5>{{ domain.domain }}</h5>
+                            <button type="button" class="close" data-reference="{{ domain.reference }}" style="position: absolute;top: 10px;right: 25px;">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
                         <div class="panel-body" style="height:400px;">
                         </div>
                     </div>
@@ -57,7 +62,7 @@
             {% endfor %}
         </div>
 
-        {% if states|default %}
+        {% if domains|default %}
             <div class="row text-center">
                 <button class="btn btn-primary" id="refresh">Refresh</button>
             </div>
@@ -69,8 +74,10 @@
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"
             integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
             crossorigin="anonymous"></script>
+    <script src="{{ asset('bundles/fosjsrouting/js/router.js') }}"></script>
+    <script src="{{ path('fos_js_routing_js', { callback: 'fos.Router.setData' }) }}"></script>
     <script type="text/javascript">
-        var jxhr;
+        var jxhr, jxhr2;
         $(document).ready(function() {
             loadIframes();
             setInterval(function() {
@@ -85,29 +92,46 @@
                 cache: false,
                 beforeSend: function(xhr) {
                     $('.alert').remove();
-                    $('body .container .row').first().prepend('<div class="alert alert-info">Chargement en cours...</div>');
+                    $('body .container .row').first().prepend('<div class="alert alert-info">Loading...</div>');
                 }
             }).done(function(data) {
-                var on = true;
-                for (var i = 0; i < data.length; i++) {
-                    if (data[i].state == false) {
-                        changeFavicon("{{ asset('images/red.png') }}");
-                        on = false;
-                    }
-                }
-                if (on) {
-                    changeFavicon("{{ asset('images/green.png') }}");
-                }
                 loadIframes();
                 $('.alert').remove();
+            });
+        }).on('click', '.iframes .close', function() {
+            var _this = $(this);
+            var url = Routing.generate('website_delete', {'reference': _this.attr('data-reference')});
+            jxhr2 = $.ajax({
+                url: url,
+                cache: false
+            }).done(function(data) {
+                $('.alert').remove();
+                if (data == 'ok') {
+                    $('body .container .row').first().prepend('<div class="alert alert-success">Website successfully removed</div>');
+                    $('#' + _this.attr('data-reference')).remove();
+                }
+                else {
+                    $('body .container .row').first().prepend('<div class="alert alert-success">An error occured</div>');
+                }
             });
         });
 
         function loadIframes() {
+            var on = true;
             $('.iframes').each(function(index) {
-                var domain = $(this).find('.panel-heading').html();
-                $(this).find('.panel-body').html('<iframe src="' + domain + '" style="height:100%;"></iframe>')
+                var domain = $(this).find('.panel-heading  h5').html();
+                $(this).find('.panel-body').html('<iframe src="' + domain + '" style="height:100%;"></iframe>');
+
+                if ($(this).hasClass('panel-danger')) {
+                    on = false;
+                }
             });
+            if (on) {
+                changeFavicon("{{ asset('images/green.png') }}");
+            }
+            else {
+                changeFavicon("{{ asset('images/red.png') }}");
+            }
         }
 
         function changeFavicon(img) {
@@ -116,6 +140,6 @@
             link.rel = 'shortcut icon';
             link.href = img;
             document.getElementsByTagName('head')[0].appendChild(link);
-        };
+        }
     </script>
 {% endblock %}
