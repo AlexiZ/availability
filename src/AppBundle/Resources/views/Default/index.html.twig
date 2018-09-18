@@ -55,8 +55,7 @@
                                 <span aria-hidden="true">&times;</span>
                             </button>
                         </div>
-                        <div class="panel-body" style="height:400px;">
-                        </div>
+                        <div class="panel-body" style="height:100px;"></div>
                     </div>
                 </div>
             {% endfor %}
@@ -120,7 +119,8 @@
             var on = true;
             $('.iframes').each(function(index) {
                 var domain = $(this).find('.panel-heading  h5').html();
-                $(this).find('.panel-body').html('<iframe src="' + domain + '" style="height:100%;"></iframe>');
+                $(this).find('.panel-body').remove();
+                $(this).append('<div class="panel-body"><img src="' + domain + '/favicon.ico" style="height:30px;"></div>');
 
                 if ($(this).hasClass('panel-danger')) {
                     on = false;

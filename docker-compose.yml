@@ -26,8 +26,8 @@ services:
             - .:/var/www/symfony
             - $HOME/.composer:/var/tmp/composer
         environment:
-            SF_APP_HOST: $COMPOSE_PROJECT_NAME.$DOCKER_HOST_SUFFIX
-            SF_DATABASE_NAME: $COMPOSE_PROJECT_NAME
+            SF_APP_HOST: availability.$DOCKER_HOST_SUFFIX
+            SF_DATABASE_NAME: availability
 
     web:
         image: lephare/apache:2.4
@@ -39,6 +39,6 @@ services:
         volumes:
             - ./var/logs/apache:/var/log/apache2
         environment:
-            VIRTUAL_HOST: $COMPOSE_PROJECT_NAME.$DOCKER_HOST_SUFFIX,$COMPOSE_PROJECT_NAME.docker
+            VIRTUAL_HOST: availability.$DOCKER_HOST_SUFFIX,availability.docker
             CERT_NAME: generic
             HTTPS_METHOD: noredirect
